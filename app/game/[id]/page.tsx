@@ -126,7 +126,7 @@ export default function GamePage({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white overflow-hidden">
+    <div className="flex flex-col h-[100svh] bg-[var(--game-bg)] text-white overflow-hidden">
       <GameHeader
         gameId={gameId}
         username={username}
