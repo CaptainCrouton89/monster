@@ -14,7 +14,7 @@ import {
   GameSession,
   getGameSession,
   updateSessionStatus,
-} from "@/utils/session";
+} from "@/utils/supabase/session";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";

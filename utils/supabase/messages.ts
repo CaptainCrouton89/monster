@@ -179,3 +179,95 @@ export async function getRecentMessages(
   // Return in chronological order
   return (data as Message[]).reverse();
 }
+
+/**
+ * Sends a message to the webhook
+ * @param messageData The message data to send
+ * @returns True if successful
+ */
+export async function sendMessageToWebhook(messageData: {
+  sessionId: string;
+  text: string;
+  userId: string;
+  messageId: string;
+  isAi?: boolean;
+  messageType?: string;
+}): Promise<boolean> {
+  const webhookUrl =
+    "https://andrewmayne.app.n8n.cloud/webhook/a79e73f0-a866-4b25-95be-4302bde67c1e";
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(messageData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Webhook error:", errorText);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error sending to webhook:", error);
+    return false;
+  }
+}
+
+/**
+ * Adds a new user message to the database and sends it to the webhook
+ * @param sessionId The game session ID
+ * @param userId User's identifier
+ * @param content Message content
+ * @returns The created message
+ */
+export async function addUserMessageWithWebhook(
+  sessionId: string,
+  userId: string,
+  content: string
+): Promise<Message> {
+  // First save to database
+  const savedMessage = await addUserMessage(sessionId, userId, content);
+
+  // Then send to webhook
+  await sendMessageToWebhook({
+    sessionId,
+    text: content,
+    userId,
+    messageId: savedMessage.id,
+  });
+
+  return savedMessage;
+}
+
+/**
+ * Adds a new AI message to the database and sends it to the webhook
+ * @param sessionId The game session ID
+ * @param content Message content
+ * @param messageType Optional type of message
+ * @returns The created message
+ */
+export async function addAIMessageWithWebhook(
+  sessionId: string,
+  content: string,
+  messageType?: string
+): Promise<Message> {
+  // First save to database
+  const savedMessage = await addAIMessage(sessionId, content);
+
+  // Then send to webhook
+  await sendMessageToWebhook({
+    sessionId,
+    text: content,
+    userId: "AI",
+    messageId: savedMessage.id,
+    isAi: true,
+    messageType,
+  });
+
+  return savedMessage;
+}

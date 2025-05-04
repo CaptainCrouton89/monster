@@ -1,5 +1,6 @@
 "use client";
 
+import { Json } from "@/types/database.types";
 import { createClient } from "@/utils/supabase/client";
 
 export type GameSession = {
@@ -10,6 +11,25 @@ export type GameSession = {
   };
   created_at: string;
 };
+
+// Type for the raw database response
+type GameSessionRaw = {
+  id: string;
+  game_state: Json;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+/**
+ * Safely converts a raw DB response to a typed GameSession
+ */
+function dbResponseToGameSession(data: GameSessionRaw): GameSession {
+  return {
+    id: data.id,
+    game_state: data.game_state as { users: string[]; status: string },
+    created_at: data.created_at || new Date().toISOString(),
+  };
+}
 
 /**
  * Creates a new game session
@@ -36,7 +56,7 @@ export async function createGameSession(username: string | null = null) {
     throw new Error("Failed to create game session");
   }
 
-  return data as GameSession;
+  return dbResponseToGameSession(data as GameSessionRaw);
 }
 
 /**
@@ -60,7 +80,7 @@ export async function getGameSession(id: string) {
     throw new Error("Failed to fetch game session");
   }
 
-  return data as GameSession;
+  return dbResponseToGameSession(data as GameSessionRaw);
 }
 
 /**
@@ -102,7 +122,7 @@ export async function addUserToSession(sessionId: string, username: string) {
     throw new Error("Failed to add user to session");
   }
 
-  return data as GameSession;
+  return dbResponseToGameSession(data as GameSessionRaw);
 }
 
 /**
@@ -137,7 +157,7 @@ export async function updateSessionStatus(sessionId: string, status: string) {
     throw new Error("Failed to update session status");
   }
 
-  return data as GameSession;
+  return dbResponseToGameSession(data as GameSessionRaw);
 }
 
 /**

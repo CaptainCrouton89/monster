@@ -9,7 +9,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { checkGameSessionExists, createGameSession } from "@/utils/session";
+import {
+  checkGameSessionExists,
+  createGameSession,
+} from "@/utils/supabase/session";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 

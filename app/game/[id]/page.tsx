@@ -1,13 +1,13 @@
 "use client";
 
-import { GameSession, getGameSession } from "@/utils/session";
 import {
   Message as DBMessage,
-  addAIMessage,
-  addUserMessage,
+  addAIMessageWithWebhook,
+  addUserMessageWithWebhook,
   getSessionMessages,
   subscribeToMessages,
 } from "@/utils/supabase/messages";
+import { GameSession, getGameSession } from "@/utils/supabase/session";
 import Link from "next/link";
 import { use, useEffect, useRef, useState } from "react";
 
@@ -44,6 +44,7 @@ export default function GamePage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const subscriptionRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     // Check for user in localStorage
@@ -59,14 +60,20 @@ export default function GamePage({
     fetchMessages();
 
     // Subscribe to new messages
-    const unsubscribe = subscribeToMessages(gameId, (newMessage) => {
+    subscriptionRef.current = subscribeToMessages(gameId, (newMessage) => {
+      console.log("New message received:", newMessage);
       const uiMessage = convertToUIMessage(newMessage);
-      setMessages((prev) => [...prev, uiMessage]);
+      setMessages((prev) => {
+        // Check if the message is already in the array to prevent duplicates
+        const exists = prev.some((msg) => msg.id === uiMessage.id);
+        if (exists) return prev;
+        return [...prev, uiMessage];
+      });
     });
 
     // Cleanup subscription
     return () => {
-      unsubscribe();
+      subscriptionRef.current();
     };
   }, [gameId]);
 
@@ -83,11 +90,11 @@ export default function GamePage({
             : "You're the only player right now.";
 
         try {
-          // Add welcome message to database
-          await addAIMessage(
-            gameId,
-            `Welcome to the game! I'll be your monster companion. ${playerList} What would you like to do?`
-          );
+          // Create welcome message
+          const welcomeMessage = `Welcome to the game! I'll be your monster companion. ${playerList} What would you like to do?`;
+
+          // Add welcome message to database and send to webhook
+          await addAIMessageWithWebhook(gameId, welcomeMessage, "welcome");
 
           // We don't need to update the local state here since the subscription will handle it
         } catch (error) {
@@ -141,20 +148,20 @@ export default function GamePage({
 
     if (inputValue.trim() === "" || !username) return;
 
-    try {
-      // Add user message to database
-      await addUserMessage(gameId, username, inputValue.trim());
+    const messageText = inputValue.trim();
+    setInputValue("");
 
-      // Clear input field
-      setInputValue("");
+    try {
+      // Add user message to Supabase and send to webhook
+      await addUserMessageWithWebhook(gameId, username, messageText);
 
       // AI response is handled on the backend, but we'll simulate it here
       setTimeout(async () => {
         try {
-          await addAIMessage(
-            gameId,
-            `I'm just a demo bot. Your game ID is ${gameId} and you said: "${inputValue.trim()}"`
-          );
+          const botResponse = `I'm just a demo bot. Your game ID is ${gameId} and you said: "${messageText}"`;
+
+          // Save AI response to Supabase and send to webhook
+          await addAIMessageWithWebhook(gameId, botResponse);
         } catch (error) {
           console.error("Error adding AI response:", error);
         }

@@ -32,4 +32,16 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_game_sessions_timestamp
 BEFORE UPDATE ON game_sessions
 FOR EACH ROW
-EXECUTE FUNCTION update_timestamp(); 
+EXECUTE FUNCTION update_timestamp();
+
+-- Set up Supabase Realtime
+BEGIN;
+  -- Remove the supabase_realtime publication if it exists
+  DROP PUBLICATION IF EXISTS supabase_realtime;
+  
+  -- Re-create the supabase_realtime publication
+  CREATE PUBLICATION supabase_realtime;
+COMMIT;
+
+-- Add messages table to the publication for realtime subscriptions
+ALTER PUBLICATION supabase_realtime ADD TABLE messages; 
