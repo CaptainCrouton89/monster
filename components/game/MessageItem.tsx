@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { UIMessage } from "./types";
 
 interface MessageItemProps {
@@ -22,6 +23,17 @@ export function MessageItem({ message }: MessageItemProps) {
           {message.sender === "user" ? message.userId : "MonsterBot"}
         </div>
         <div className="text-sm sm:text-base break-words">{message.text}</div>
+        {message.sender === "AI" && message.imageUrl && (
+          <div className="mt-2 rounded-lg overflow-hidden">
+            <Image
+              src={message.imageUrl}
+              alt="AI generated image"
+              width={300}
+              height={300}
+              className="max-w-full object-contain rounded-lg"
+            />
+          </div>
+        )}
         <div className="text-xs text-[var(--game-text-secondary)] mt-1 text-right">
           {message.timestamp.toLocaleTimeString([], {
             hour: "2-digit",

@@ -9,6 +9,7 @@ export type Message = {
   is_ai: boolean;
   text: string;
   created_at: string;
+  image_url: string | null;
 };
 
 /**
@@ -73,11 +74,13 @@ export async function addUserMessage(
  * Adds a new AI message to the database
  * @param sessionId The game session ID
  * @param text Message content
+ * @param imageUrl Optional URL to an image
  * @returns The created message
  */
 export async function addAIMessage(
   sessionId: string,
-  text: string
+  text: string,
+  imageUrl?: string | null
 ): Promise<Message> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -87,6 +90,7 @@ export async function addAIMessage(
       user_id: null,
       is_ai: true,
       text,
+      image_url: imageUrl || null,
     })
     .select()
     .single();
