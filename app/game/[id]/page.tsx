@@ -6,6 +6,7 @@ import { GameHeader } from "@/components/game/GameHeader";
 import { LoadingState } from "@/components/game/LoadingState";
 import { MessageList } from "@/components/game/MessageList";
 import { UIMessage, convertToUIMessage } from "@/components/game/types";
+import { useMobileHeight } from "@/hooks/useMobileHeight";
 import {
   addUserMessageWithWebhook,
   getSessionMessages,
@@ -31,28 +32,7 @@ export default function GamePage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiResponding, setAiResponding] = useState(false);
 
-  useEffect(() => {
-    if (!window.visualViewport) return;
-
-    const updateHeight = () => {
-      document.documentElement.style.setProperty(
-        "--app-height",
-        `${window.visualViewport!.height}px`
-      );
-    };
-
-    // listen for viewport changes (resize/scroll affects height)
-    window.visualViewport.addEventListener("resize", updateHeight);
-    window.visualViewport.addEventListener("scroll", updateHeight);
-
-    // set initial value
-    updateHeight();
-
-    return () => {
-      window.visualViewport!.removeEventListener("resize", updateHeight);
-      window.visualViewport!.removeEventListener("scroll", updateHeight);
-    };
-  }, []);
+  useMobileHeight();
 
   useEffect(() => {
     // Check for user in localStorage
