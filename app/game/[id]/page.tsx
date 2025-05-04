@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@/components/ui/spinner";
 import {
   Message as DBMessage,
   addUserMessageWithWebhook,
@@ -48,6 +49,8 @@ export default function GamePage({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const subscriptionRef = useRef<() => void>(() => {});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiResponding, setAiResponding] = useState(false);
 
   useEffect(() => {
     // Check for user in localStorage
@@ -66,6 +69,12 @@ export default function GamePage({
     subscriptionRef.current = subscribeToMessages(gameId, (newMessage) => {
       console.log("New message received:", newMessage);
       const uiMessage = convertToUIMessage(newMessage);
+
+      // If AI message received, set aiResponding to false
+      if (uiMessage.sender === "AI") {
+        setAiResponding(false);
+      }
+
       setMessages((prev) => {
         // Check if the message is already in the array to prevent duplicates
         const exists = prev.some((msg) => msg.id === uiMessage.id);
@@ -148,18 +157,24 @@ export default function GamePage({
 
     const messageText = inputValue.trim();
     setInputValue("");
+    setIsSubmitting(true);
 
     try {
       // Add user message to Supabase and send to webhook
       await addUserMessageWithWebhook(gameId, username, messageText, gameId);
+      setIsSubmitting(false);
+      // Set AI is responding
+      setAiResponding(true);
     } catch (error) {
       console.error("Error sending message:", error);
+      setIsSubmitting(false);
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white items-center justify-center">
+        <Spinner size="lg" className="border-white mb-4" />
         <p>Loading game...</p>
       </div>
     );
@@ -246,6 +261,16 @@ export default function GamePage({
             </div>
           </div>
         ))}
+        {aiResponding && (
+          <div className="flex justify-start">
+            <div className="game-message-ai text-white rounded-2xl rounded-tl-none max-w-[90%] sm:max-w-[80%] px-3 sm:px-4 py-3 flex items-center gap-2">
+              <span className="font-medium text-sm sm:text-base">
+                MonsterBot
+              </span>
+              <Spinner size="sm" className="border-white" />
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -258,12 +283,21 @@ export default function GamePage({
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
             className="flex-1 game-input rounded-full px-3 sm:px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            disabled={isSubmitting}
           />
           <button
             type="submit"
-            className="game-button-primary px-3 sm:px-4 py-2 rounded-full text-sm sm:text-base transition-colors flex-shrink-0"
+            className="game-button-primary px-3 sm:px-4 py-2 rounded-full text-sm sm:text-base transition-colors flex-shrink-0 flex items-center gap-2"
+            disabled={isSubmitting || inputValue.trim() === ""}
           >
-            Send
+            {isSubmitting ? (
+              <>
+                <Spinner size="sm" className="border-white" />
+                <span>Sending</span>
+              </>
+            ) : (
+              "Send"
+            )}
           </button>
         </form>
       </div>
