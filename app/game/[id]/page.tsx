@@ -2,7 +2,6 @@
 
 import {
   Message as DBMessage,
-  addAIMessageWithWebhook,
   addUserMessageWithWebhook,
   getSessionMessages,
   subscribeToMessages,
@@ -78,35 +77,6 @@ export default function GamePage({
   }, [gameId]);
 
   useEffect(() => {
-    // Add initial bot welcome message if there are no messages
-    const addInitialMessage = async () => {
-      if (gameSession && !isLoading && messages.length === 0) {
-        const players = gameSession.game_state.users.filter(
-          (user) => user !== username
-        );
-        const playerList =
-          players.length > 0
-            ? `You're playing with ${players.join(", ")}.`
-            : "You're the only player right now.";
-
-        try {
-          // Create welcome message
-          const welcomeMessage = `Welcome to the game! I'll be your monster companion. ${playerList} What would you like to do?`;
-
-          // Add welcome message to database and send to webhook
-          await addAIMessageWithWebhook(gameId, welcomeMessage, "welcome");
-
-          // We don't need to update the local state here since the subscription will handle it
-        } catch (error) {
-          console.error("Error adding welcome message:", error);
-        }
-      }
-    };
-
-    addInitialMessage();
-  }, [gameSession, isLoading, username, messages.length, gameId]);
-
-  useEffect(() => {
     // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -153,19 +123,7 @@ export default function GamePage({
 
     try {
       // Add user message to Supabase and send to webhook
-      await addUserMessageWithWebhook(gameId, username, messageText);
-
-      // AI response is handled on the backend, but we'll simulate it here
-      setTimeout(async () => {
-        try {
-          const botResponse = `I'm just a demo bot. Your game ID is ${gameId} and you said: "${messageText}"`;
-
-          // Save AI response to Supabase and send to webhook
-          await addAIMessageWithWebhook(gameId, botResponse);
-        } catch (error) {
-          console.error("Error adding AI response:", error);
-        }
-      }, 1000);
+      await addUserMessageWithWebhook(gameId, username, messageText, gameId);
     } catch (error) {
       console.error("Error sending message:", error);
     }

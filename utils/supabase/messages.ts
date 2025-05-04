@@ -188,10 +188,8 @@ export async function getRecentMessages(
 export async function sendMessageToWebhook(messageData: {
   sessionId: string;
   text: string;
+  threadId: string;
   userId: string;
-  messageId: string;
-  isAi?: boolean;
-  messageType?: string;
 }): Promise<boolean> {
   const webhookUrl =
     "https://andrewmayne.app.n8n.cloud/webhook/a79e73f0-a866-4b25-95be-4302bde67c1e";
@@ -228,45 +226,18 @@ export async function sendMessageToWebhook(messageData: {
 export async function addUserMessageWithWebhook(
   sessionId: string,
   userId: string,
-  content: string
+  text: string,
+  threadId: string
 ): Promise<Message> {
   // First save to database
-  const savedMessage = await addUserMessage(sessionId, userId, content);
+  const savedMessage = await addUserMessage(sessionId, userId, text);
 
   // Then send to webhook
   await sendMessageToWebhook({
-    sessionId,
-    text: content,
     userId,
-    messageId: savedMessage.id,
-  });
-
-  return savedMessage;
-}
-
-/**
- * Adds a new AI message to the database and sends it to the webhook
- * @param sessionId The game session ID
- * @param content Message content
- * @param messageType Optional type of message
- * @returns The created message
- */
-export async function addAIMessageWithWebhook(
-  sessionId: string,
-  content: string,
-  messageType?: string
-): Promise<Message> {
-  // First save to database
-  const savedMessage = await addAIMessage(sessionId, content);
-
-  // Then send to webhook
-  await sendMessageToWebhook({
+    threadId,
     sessionId,
-    text: content,
-    userId: "AI",
-    messageId: savedMessage.id,
-    isAi: true,
-    messageType,
+    text,
   });
 
   return savedMessage;
