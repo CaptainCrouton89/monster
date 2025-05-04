@@ -174,7 +174,7 @@ export default function GamePage({
   if (isLoading) {
     return (
       <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white items-center justify-center">
-        <Spinner size="lg" className="border-white mb-4" />
+        <Spinner size="lg" variant="default" className="mb-4" />
         <p>Loading game...</p>
       </div>
     );
@@ -267,7 +267,7 @@ export default function GamePage({
               <span className="font-medium text-sm sm:text-base">
                 MonsterBot
               </span>
-              <Spinner size="sm" className="border-white" />
+              <Spinner size="sm" variant="default" />
             </div>
           </div>
         )}
@@ -292,7 +292,7 @@ export default function GamePage({
           >
             {isSubmitting ? (
               <>
-                <Spinner size="sm" className="border-white" />
+                <Spinner size="sm" variant="inherit" />
                 <span>Sending</span>
               </>
             ) : (
