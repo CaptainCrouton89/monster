@@ -13,7 +13,7 @@ import { use, useEffect, useRef, useState } from "react";
 // Client-side message type with UI-specific fields
 type UIMessage = {
   id: string;
-  sender: "user" | "bot";
+  sender: string;
   text: string;
   timestamp: Date;
 };
@@ -22,7 +22,7 @@ type UIMessage = {
 function convertToUIMessage(message: DBMessage): UIMessage {
   return {
     id: message.id,
-    sender: message.is_ai ? "bot" : "user",
+    sender: message.is_ai ? "AI" : message.user_id || "Unknown",
     text: message.content,
     timestamp: new Date(message.created_at),
   };
