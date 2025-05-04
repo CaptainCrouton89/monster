@@ -15,9 +15,11 @@ import {
   getGameSession,
   updateSessionStatus,
 } from "@/utils/supabase/session";
+import { ClipboardCopy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
+import QRCode from "react-qr-code";
 
 export default function LobbyPage({
   params,
@@ -34,6 +36,25 @@ export default function LobbyPage({
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [lobbyUrl, setLobbyUrl] = useState("");
+
+  useEffect(() => {
+    // Set the lobby URL when component mounts
+    if (typeof window !== "undefined") {
+      setLobbyUrl(window.location.href);
+    }
+  }, []);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(lobbyUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
+  };
 
   useEffect(() => {
     // Check for user in localStorage
@@ -140,6 +161,27 @@ export default function LobbyPage({
           <p className="text-2xl font-mono bg-slate-950/50 p-3 rounded mb-6">
             {lobbyId}
           </p>
+
+          {/* QR Code Section */}
+          <div className="mb-6">
+            <p className="text-xl mb-3">Share Lobby:</p>
+            <div className="flex flex-col items-center gap-4">
+              <div className="bg-white p-3 rounded">
+                <QRCode value={lobbyUrl} size={150} />
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white border-slate-600"
+                  onClick={copyToClipboard}
+                >
+                  <ClipboardCopy size={16} />
+                  {copied ? "Copied!" : "Copy Link"}
+                </Button>
+              </div>
+            </div>
+          </div>
 
           {username && (
             <p className="text-green-400 mb-6">
