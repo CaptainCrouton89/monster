@@ -35,27 +35,27 @@ export type Database = {
       }
       messages: {
         Row: {
-          content: string
           created_at: string | null
           id: string
           is_ai: boolean
           session_id: string
+          text: string
           user_id: string | null
         }
         Insert: {
-          content: string
           created_at?: string | null
           id?: string
           is_ai?: boolean
           session_id: string
+          text: string
           user_id?: string | null
         }
         Update: {
-          content?: string
           created_at?: string | null
           id?: string
           is_ai?: boolean
           session_id?: string
+          text?: string
           user_id?: string | null
         }
         Relationships: [

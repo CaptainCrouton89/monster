@@ -136,6 +136,28 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Improve touch targets on mobile */
+  @media (max-width: 640px) {
+    button,
+    a,
+    input[type="submit"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    input,
+    select,
+    textarea {
+      font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+  }
+
+  /* Disable overscroll behavior */
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
 }
 
 /* Game-specific utility classes */
@@ -185,4 +207,21 @@
 
 .game-message-ai {
   background-color: var(--game-message-ai-bg);
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  .game-button-primary,
+  .game-button-secondary {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  /* Adjust message bubbles for better mobile display */
+  .game-message-user,
+  .game-message-ai {
+    max-width: 90%;
+    hyphens: auto;
+    word-break: break-word;
+  }
 }

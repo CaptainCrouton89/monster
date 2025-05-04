@@ -86,23 +86,25 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen game-gradient text-white p-8">
-      <main className="flex flex-col items-center gap-8 text-center">
-        <h1 className="text-6xl font-bold tracking-tight">dumb game</h1>
-        <p className="text-xl text-slate-300 max-w-md">
+    <div className="flex flex-col items-center justify-center min-h-screen game-gradient text-white p-4 sm:p-8">
+      <main className="flex flex-col items-center gap-6 sm:gap-8 text-center w-full max-w-md mx-auto">
+        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
+          Monsters
+        </h1>
+        <p className="text-lg sm:text-xl text-slate-300 max-w-md">
           Make monsters and fight.
         </p>
-        <div className="flex gap-4 mt-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-6 w-full">
           <button
             onClick={createGame}
             disabled={isCreating}
-            className="px-8 py-3 game-button-primary rounded-full font-medium text-lg transition-colors disabled:opacity-70"
+            className="w-full px-6 py-3 game-button-primary rounded-full font-medium text-base sm:text-lg transition-colors disabled:opacity-70"
           >
             {isCreating ? "Creating..." : "Create Game"}
           </button>
           <button
             onClick={() => setIsJoinDialogOpen(true)}
-            className="px-8 py-3 game-button-secondary rounded-full font-medium text-lg transition-colors"
+            className="w-full px-6 py-3 game-button-secondary rounded-full font-medium text-base sm:text-lg transition-colors"
           >
             Join Game
           </button>
@@ -111,7 +113,7 @@ export default function Home() {
 
       {/* Join Game Dialog */}
       <Dialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="w-[95vw] max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle>Join Existing Game</DialogTitle>
             <DialogDescription>
@@ -140,7 +142,7 @@ export default function Home() {
         onOpenChange={setIsUserDialogOpen}
         defaultOpen={false}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="w-[95vw] max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle>Create Username</DialogTitle>
             <DialogDescription>

@@ -25,7 +25,7 @@ function convertToUIMessage(message: DBMessage): UIMessage {
     id: message.id,
     sender: message.is_ai ? "AI" : "user",
     userId: message.user_id,
-    text: message.content,
+    text: message.text,
     timestamp: new Date(message.created_at),
   };
 }
@@ -44,7 +44,9 @@ export default function GamePage({
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const subscriptionRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -71,6 +73,30 @@ export default function GamePage({
         return [...prev, uiMessage];
       });
     });
+
+    // Detect mobile keyboard
+    if (typeof window !== "undefined") {
+      const detectKeyboard = () => {
+        const visualViewport = window.visualViewport;
+        if (visualViewport) {
+          const isKeyboard = window.innerHeight > visualViewport.height + 150;
+          setIsKeyboardOpen(isKeyboard);
+
+          if (isKeyboard && chatContainerRef.current) {
+            // Adjust scroll when keyboard is opened
+            setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+          }
+        }
+      };
+
+      window.visualViewport?.addEventListener("resize", detectKeyboard);
+      return () => {
+        window.visualViewport?.removeEventListener("resize", detectKeyboard);
+        subscriptionRef.current();
+      };
+    }
 
     // Cleanup subscription
     return () => {
@@ -141,8 +167,8 @@ export default function GamePage({
 
   if (error) {
     return (
-      <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white items-center justify-center">
-        <p className="text-red-400">{error}</p>
+      <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white items-center justify-center p-4">
+        <p className="text-red-400 text-center">{error}</p>
         <Link
           href="/"
           className="mt-4 px-6 py-2 bg-transparent border border-slate-600 hover:bg-slate-700/30 rounded-full font-medium transition-colors"
@@ -156,22 +182,28 @@ export default function GamePage({
   return (
     <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white">
       {/* Header */}
-      <header className="game-header p-4 flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">dumb game</h1>
-          <span className="bg-indigo-600 px-2 py-1 rounded-md text-xs">
+      <header
+        className={`game-header p-3 sm:p-4 flex items-center justify-between shadow-md ${
+          isKeyboardOpen ? "hidden sm:flex" : "flex"
+        }`}
+      >
+        <div className="flex items-center gap-2 sm:gap-3">
+          <h1 className="text-lg sm:text-xl font-bold">
+            <Link href="/">Monsters</Link>
+          </h1>
+          <span className="bg-indigo-600 px-2 py-0.5 sm:py-1 rounded-md text-xs truncate max-w-[100px] sm:max-w-none">
             Game #{gameId}
           </span>
         </div>
-        <div className="text-sm text-[var(--game-text-secondary)] flex items-center">
+        <div className="text-xs sm:text-sm text-[var(--game-text-secondary)] flex items-center flex-shrink-0">
           {username && (
-            <span className="mr-4">
-              Playing as{" "}
+            <span className="mr-2 sm:mr-4 truncate max-w-[80px] sm:max-w-none">
+              <span className="hidden xs:inline">Playing as </span>
               <span className="font-semibold text-green-400">{username}</span>
             </span>
           )}
           {gameSession && (
-            <span className="bg-slate-700 px-2 py-1 rounded-md text-xs">
+            <span className="bg-slate-700 px-2 py-0.5 sm:py-1 rounded-md text-xs whitespace-nowrap">
               {gameSession.game_state.users.length} Player
               {gameSession.game_state.users.length !== 1 && "s"}
             </span>
@@ -180,7 +212,11 @@ export default function GamePage({
       </header>
 
       {/* Chat area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4"
+        style={isKeyboardOpen ? { height: "calc(100vh - 76px)" } : {}}
+      >
         {messages.map((message) => (
           <div
             key={message.id}
@@ -189,16 +225,18 @@ export default function GamePage({
             }`}
           >
             <div
-              className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+              className={`max-w-[90%] sm:max-w-[80%] px-3 sm:px-4 py-2 rounded-2xl ${
                 message.sender === "user"
                   ? "game-message-user text-white rounded-tr-none"
                   : "game-message-ai text-white rounded-tl-none"
               }`}
             >
-              <div className="font-medium">
+              <div className="font-medium text-sm sm:text-base">
                 {message.sender === "user" ? message.userId : "MonsterBot"}
               </div>
-              <div>{message.text}</div>
+              <div className="text-sm sm:text-base break-words">
+                {message.text}
+              </div>
               <div className="text-xs text-[var(--game-text-secondary)] mt-1 text-right">
                 {message.timestamp.toLocaleTimeString([], {
                   hour: "2-digit",
@@ -212,36 +250,22 @@ export default function GamePage({
       </div>
 
       {/* Input area */}
-      <div className="game-header p-4">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
+      <div className="game-header p-3 sm:p-4">
+        <form onSubmit={handleSendMessage} className="flex gap-2 relative">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 game-input rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 game-input rounded-full px-3 sm:px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <button
             type="submit"
-            className="game-button-primary px-4 py-2 rounded-full transition-colors"
+            className="game-button-primary px-3 sm:px-4 py-2 rounded-full text-sm sm:text-base transition-colors flex-shrink-0"
           >
             Send
           </button>
         </form>
-        <div className="mt-3 flex justify-center gap-4">
-          <Link
-            href={`/lobby/${gameId}`}
-            className="text-sm text-[var(--game-text-muted)] hover:text-white transition-colors"
-          >
-            Return to Lobby
-          </Link>
-          <button
-            onClick={fetchGameSession}
-            className="text-sm text-[var(--game-text-muted)] hover:text-white transition-colors"
-          >
-            Refresh Game
-          </button>
-        </div>
       </div>
     </div>
   );

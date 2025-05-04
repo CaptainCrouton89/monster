@@ -7,7 +7,7 @@ export type Message = {
   session_id: string;
   user_id: string | null;
   is_ai: boolean;
-  content: string;
+  text: string;
   created_at: string;
 };
 
@@ -41,13 +41,13 @@ export async function getSessionMessages(
  * Adds a new user message to the database
  * @param sessionId The game session ID
  * @param userId User's identifier
- * @param content Message content
+ * @param text Message content
  * @returns The created message
  */
 export async function addUserMessage(
   sessionId: string,
   userId: string,
-  content: string
+  text: string
 ): Promise<Message> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -56,7 +56,7 @@ export async function addUserMessage(
       session_id: sessionId,
       user_id: userId,
       is_ai: false,
-      content,
+      text,
     })
     .select()
     .single();
@@ -72,12 +72,12 @@ export async function addUserMessage(
 /**
  * Adds a new AI message to the database
  * @param sessionId The game session ID
- * @param content Message content
+ * @param text Message content
  * @returns The created message
  */
 export async function addAIMessage(
   sessionId: string,
-  content: string
+  text: string
 ): Promise<Message> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -86,7 +86,7 @@ export async function addAIMessage(
       session_id: sessionId,
       user_id: null,
       is_ai: true,
-      content,
+      text,
     })
     .select()
     .single();

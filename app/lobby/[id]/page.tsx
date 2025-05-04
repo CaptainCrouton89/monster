@@ -153,21 +153,23 @@ export default function LobbyPage({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen game-gradient text-white p-8">
-      <main className="flex flex-col items-center gap-8 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Game Lobby</h1>
-        <div className="game-card p-6 rounded-lg border w-full max-w-md">
-          <p className="text-xl mb-2">Lobby ID:</p>
-          <p className="text-2xl font-mono bg-slate-950/50 p-3 rounded mb-6">
+    <div className="flex flex-col items-center justify-center min-h-screen game-gradient text-white p-4 sm:p-8">
+      <main className="flex flex-col items-center gap-6 sm:gap-8 text-center w-full">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+          Game Lobby
+        </h1>
+        <div className="game-card p-4 sm:p-6 rounded-lg border w-full max-w-sm sm:max-w-md">
+          <p className="text-lg sm:text-xl mb-2">Lobby ID:</p>
+          <p className="text-xl sm:text-2xl font-mono bg-slate-950/50 p-2 sm:p-3 rounded mb-4 sm:mb-6 break-all">
             {lobbyId}
           </p>
 
           {/* QR Code Section */}
-          <div className="mb-6">
-            <p className="text-xl mb-3">Share Lobby:</p>
-            <div className="flex flex-col items-center gap-4">
-              <div className="bg-white p-3 rounded">
-                <QRCode value={lobbyUrl} size={150} />
+          <div className="mb-4 sm:mb-6">
+            <p className="text-lg sm:text-xl mb-2 sm:mb-3">Share Lobby:</p>
+            <div className="flex flex-col items-center gap-3 sm:gap-4">
+              <div className="bg-white p-2 sm:p-3 rounded">
+                <QRCode value={lobbyUrl} size={120} />
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -184,17 +186,17 @@ export default function LobbyPage({
           </div>
 
           {username && (
-            <p className="text-green-400 mb-6">
+            <p className="text-green-400 mb-4 sm:mb-6">
               Playing as: <span className="font-semibold">{username}</span>
             </p>
           )}
 
           {gameSession && (
-            <div className="mb-6">
-              <p className="text-xl mb-2">Players:</p>
-              <div className="bg-slate-950/50 p-3 rounded text-left">
+            <div className="mb-4 sm:mb-6">
+              <p className="text-lg sm:text-xl mb-2">Players:</p>
+              <div className="bg-slate-950/50 p-2 sm:p-3 rounded text-left">
                 {gameSession.game_state.users.map((user, index) => (
-                  <div key={index} className="flex items-center">
+                  <div key={index} className="flex items-center py-1">
                     <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                     <span className="font-medium">{user}</span>
                     {user === username && (
@@ -206,16 +208,16 @@ export default function LobbyPage({
             </div>
           )}
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <button
               onClick={startGame}
-              className="px-6 py-2 game-button-primary rounded-full font-medium transition-colors text-center"
+              className="w-full px-4 sm:px-6 py-2 game-button-primary rounded-full font-medium transition-colors text-center"
             >
               Start Game
             </button>
             <Link
               href="/"
-              className="px-6 py-2 bg-transparent border border-slate-600 hover:bg-slate-700/30 rounded-full font-medium transition-colors"
+              className="w-full px-4 sm:px-6 py-2 bg-transparent border border-slate-600 hover:bg-slate-700/30 rounded-full font-medium transition-colors text-center"
             >
               Leave Lobby
             </Link>
@@ -224,7 +226,7 @@ export default function LobbyPage({
       </main>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="w-[95vw] max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle>Create Username</DialogTitle>
             <DialogDescription>
