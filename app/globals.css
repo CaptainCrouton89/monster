@@ -45,37 +45,54 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.488 0.243 264.376);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.488 0.243 264.376);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+
+  /* Game-specific colors */
+  --bg-gradient-from: #0f172a; /* slate-900 */
+  --bg-gradient-to: #1e293b; /* slate-800 */
+  --game-bg: #0f172a; /* slate-900 */
+  --game-header-bg: #1e293b; /* slate-800 */
+  --game-card-bg: #1e293b; /* slate-800 */
+  --game-card-border: #475569; /* slate-600 */
+  --game-input-bg: #334155; /* slate-700 */
+  --game-input-border: #475569; /* slate-600 */
+  --game-button-bg: #4f46e5; /* indigo-600 */
+  --game-button-hover: #4338ca; /* indigo-700 */
+  --game-text-primary: #ffffff; /* white */
+  --game-text-secondary: #cbd5e1; /* slate-300 */
+  --game-text-muted: #94a3b8; /* slate-400 */
+  --game-message-user-bg: #4f46e5; /* indigo-600 */
+  --game-message-ai-bg: #334155; /* slate-700 */
 }
 
 .dark {
@@ -119,4 +136,53 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Game-specific utility classes */
+.game-gradient {
+  background-image: linear-gradient(
+    to bottom,
+    var(--bg-gradient-from),
+    var(--bg-gradient-to)
+  );
+}
+
+.game-card {
+  background-color: var(--game-card-bg);
+  border-color: var(--game-card-border);
+}
+
+.game-input {
+  background-color: var(--game-input-bg);
+  border-color: var(--game-input-border);
+}
+
+.game-button-primary {
+  background-color: var(--game-button-bg);
+  color: var(--game-text-primary);
+}
+
+.game-button-primary:hover {
+  background-color: var(--game-button-hover);
+}
+
+.game-button-secondary {
+  background-color: transparent;
+  border-color: var(--game-button-bg);
+}
+
+.game-button-secondary:hover {
+  background-color: rgba(79, 70, 229, 0.2);
+}
+
+.game-header {
+  background-color: var(--game-header-bg);
+}
+
+.game-message-user {
+  background-color: var(--game-message-user-bg);
+}
+
+.game-message-ai {
+  background-color: var(--game-message-ai-bg);
 }

@@ -13,7 +13,8 @@ import { use, useEffect, useRef, useState } from "react";
 // Client-side message type with UI-specific fields
 type UIMessage = {
   id: string;
-  sender: string;
+  sender: "user" | "AI";
+  userId: string | null;
   text: string;
   timestamp: Date;
 };
@@ -22,7 +23,8 @@ type UIMessage = {
 function convertToUIMessage(message: DBMessage): UIMessage {
   return {
     id: message.id,
-    sender: message.is_ai ? "AI" : message.user_id || "Unknown",
+    sender: message.is_ai ? "AI" : "user",
+    userId: message.user_id,
     text: message.content,
     timestamp: new Date(message.created_at),
   };
@@ -131,7 +133,7 @@ export default function GamePage({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-screen bg-slate-900 text-white items-center justify-center">
+      <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white items-center justify-center">
         <p>Loading game...</p>
       </div>
     );
@@ -139,7 +141,7 @@ export default function GamePage({
 
   if (error) {
     return (
-      <div className="flex flex-col h-screen bg-slate-900 text-white items-center justify-center">
+      <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white items-center justify-center">
         <p className="text-red-400">{error}</p>
         <Link
           href="/"
@@ -152,16 +154,16 @@ export default function GamePage({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-white">
+    <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white">
       {/* Header */}
-      <header className="bg-slate-800 p-4 flex items-center justify-between shadow-md">
+      <header className="game-header p-4 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold">dumb game</h1>
           <span className="bg-indigo-600 px-2 py-1 rounded-md text-xs">
             Game #{gameId}
           </span>
         </div>
-        <div className="text-sm text-slate-300 flex items-center">
+        <div className="text-sm text-[var(--game-text-secondary)] flex items-center">
           {username && (
             <span className="mr-4">
               Playing as{" "}
@@ -189,15 +191,15 @@ export default function GamePage({
             <div
               className={`max-w-[80%] px-4 py-2 rounded-2xl ${
                 message.sender === "user"
-                  ? "bg-indigo-600 text-white rounded-tr-none"
-                  : "bg-slate-700 text-white rounded-tl-none"
+                  ? "game-message-user text-white rounded-tr-none"
+                  : "game-message-ai text-white rounded-tl-none"
               }`}
             >
               <div className="font-medium">
-                {message.sender === "user" ? username : "MonsterBot"}
+                {message.sender === "user" ? message.userId : "MonsterBot"}
               </div>
               <div>{message.text}</div>
-              <div className="text-xs text-slate-300 mt-1 text-right">
+              <div className="text-xs text-[var(--game-text-secondary)] mt-1 text-right">
                 {message.timestamp.toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -210,18 +212,18 @@ export default function GamePage({
       </div>
 
       {/* Input area */}
-      <div className="bg-slate-800 p-4">
+      <div className="game-header p-4">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 bg-slate-700 border border-slate-600 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 game-input rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <button
             type="submit"
-            className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors"
+            className="game-button-primary px-4 py-2 rounded-full transition-colors"
           >
             Send
           </button>
@@ -229,13 +231,13 @@ export default function GamePage({
         <div className="mt-3 flex justify-center gap-4">
           <Link
             href={`/lobby/${gameId}`}
-            className="text-sm text-slate-400 hover:text-white transition-colors"
+            className="text-sm text-[var(--game-text-muted)] hover:text-white transition-colors"
           >
             Return to Lobby
           </Link>
           <button
             onClick={fetchGameSession}
-            className="text-sm text-slate-400 hover:text-white transition-colors"
+            className="text-sm text-[var(--game-text-muted)] hover:text-white transition-colors"
           >
             Refresh Game
           </button>

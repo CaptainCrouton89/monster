@@ -132,7 +132,7 @@ export default function LobbyPage({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+      <div className="flex flex-col items-center justify-center min-h-screen game-gradient text-white">
         <p>Loading lobby...</p>
       </div>
     );
@@ -140,7 +140,7 @@ export default function LobbyPage({
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+      <div className="flex flex-col items-center justify-center min-h-screen game-gradient text-white">
         <p className="text-red-400">{error}</p>
         <Link
           href="/"
@@ -153,10 +153,10 @@ export default function LobbyPage({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white p-8">
+    <div className="flex flex-col items-center justify-center min-h-screen game-gradient text-white p-8">
       <main className="flex flex-col items-center gap-8 text-center">
         <h1 className="text-4xl font-bold tracking-tight">Game Lobby</h1>
-        <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700 w-full max-w-md">
+        <div className="game-card p-6 rounded-lg border w-full max-w-md">
           <p className="text-xl mb-2">Lobby ID:</p>
           <p className="text-2xl font-mono bg-slate-950/50 p-3 rounded mb-6">
             {lobbyId}
@@ -173,7 +173,7 @@ export default function LobbyPage({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white border-slate-600"
+                  className="flex items-center gap-2 game-header text-white border-slate-600"
                   onClick={copyToClipboard}
                 >
                   <ClipboardCopy size={16} />
@@ -209,7 +209,7 @@ export default function LobbyPage({
           <div className="flex flex-col gap-4">
             <button
               onClick={startGame}
-              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-full font-medium transition-colors text-center"
+              className="px-6 py-2 game-button-primary rounded-full font-medium transition-colors text-center"
             >
               Start Game
             </button>
@@ -236,7 +236,7 @@ export default function LobbyPage({
               placeholder="Enter your username"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="bg-slate-800 border-slate-700 text-white"
+              className="game-input text-white"
               required
             />
             <Button type="submit" className="w-full">

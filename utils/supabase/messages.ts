@@ -189,7 +189,7 @@ export async function sendMessageToWebhook(messageData: {
   sessionId: string;
   text: string;
   threadId: string;
-  userId: string;
+  user: string;
 }): Promise<boolean> {
   const webhookUrl =
     "https://andrewmayne.app.n8n.cloud/webhook/a79e73f0-a866-4b25-95be-4302bde67c1e";
@@ -234,7 +234,7 @@ export async function addUserMessageWithWebhook(
 
   // Then send to webhook
   await sendMessageToWebhook({
-    userId,
+    user: userId,
     threadId,
     sessionId,
     text,
