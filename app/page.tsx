@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/utils/supabase/client";
+import { checkGameSessionExists, createGameSession } from "@/utils/session";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -44,25 +44,12 @@ export default function Home() {
     try {
       // Get the username from localStorage
       const username = localStorage.getItem("username");
-      const users = username ? [username] : [];
 
       // Create a new game session in Supabase
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("game_sessions")
-        .insert({
-          game_state: {
-            users: users,
-            status: "waiting",
-          },
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      const gameSession = await createGameSession(username);
 
       // Navigate to the new lobby
-      router.push(`/lobby/${data.id}`);
+      router.push(`/lobby/${gameSession.id}`);
     } catch (error) {
       console.error("Failed to create game:", error);
       setIsCreating(false);
@@ -80,21 +67,10 @@ export default function Home() {
 
     try {
       // Check if the game exists
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("game_sessions")
-        .select()
-        .eq("id", gameIdInput.trim())
-        .single();
+      const exists = await checkGameSessionExists(gameIdInput.trim());
 
-      if (error) {
-        if (error.code === "PGRST116") {
-          // This is the "not found" error code
-          setJoinError("Game not found");
-        } else {
-          setJoinError("Error joining game");
-          console.error(error);
-        }
+      if (!exists) {
+        setJoinError("Game not found");
         return;
       }
 

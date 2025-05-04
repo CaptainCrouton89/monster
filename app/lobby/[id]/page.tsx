@@ -9,19 +9,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/utils/supabase/client";
+import {
+  addUserToSession,
+  GameSession,
+  getGameSession,
+  updateSessionStatus,
+} from "@/utils/session";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
-
-type GameSession = {
-  id: string;
-  game_state: {
-    users: string[];
-    status: string;
-  };
-  created_at: string;
-};
 
 export default function LobbyPage({
   params,
@@ -64,20 +60,13 @@ export default function LobbyPage({
     setError(null);
 
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("game_sessions")
-        .select("*")
-        .eq("id", lobbyId)
-        .single();
+      const session = await getGameSession(lobbyId);
 
-      if (error) throw error;
-
-      if (!data) {
+      if (!session) {
         throw new Error("Game session not found");
       }
 
-      setGameSession(data as GameSession);
+      setGameSession(session);
     } catch (error: unknown) {
       console.error("Error fetching game session:", error);
       const errorMessage =
@@ -92,31 +81,10 @@ export default function LobbyPage({
     if (!username || !gameSession) return;
 
     try {
-      // Check if user is already in the game
+      // Only add the user if they're not already in the game
       if (!gameSession.game_state.users.includes(username)) {
-        const supabase = createClient();
-        const updatedUsers = [...gameSession.game_state.users, username];
-
-        const { error } = await supabase
-          .from("game_sessions")
-          .update({
-            game_state: {
-              ...gameSession.game_state,
-              users: updatedUsers,
-            },
-          })
-          .eq("id", lobbyId);
-
-        if (error) throw error;
-
-        // Update local state
-        setGameSession({
-          ...gameSession,
-          game_state: {
-            ...gameSession.game_state,
-            users: updatedUsers,
-          },
-        });
+        const updatedSession = await addUserToSession(lobbyId, username);
+        setGameSession(updatedSession);
       }
     } catch (error) {
       console.error("Error joining lobby:", error);
@@ -132,8 +100,13 @@ export default function LobbyPage({
     }
   };
 
-  const startGame = () => {
-    router.push(`/game/${lobbyId}`);
+  const startGame = async () => {
+    try {
+      await updateSessionStatus(lobbyId, "in_progress");
+      router.push(`/game/${lobbyId}`);
+    } catch (error) {
+      console.error("Error starting game:", error);
+    }
   };
 
   if (isLoading) {

@@ -1,24 +1,33 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
+import { GameSession, getGameSession } from "@/utils/session";
+import {
+  Message as DBMessage,
+  addAIMessage,
+  addUserMessage,
+  getSessionMessages,
+  subscribeToMessages,
+} from "@/utils/supabase/messages";
 import Link from "next/link";
 import { use, useEffect, useRef, useState } from "react";
 
-type GameSession = {
-  id: string;
-  game_state: {
-    users: string[];
-    status: string;
-  };
-  created_at: string;
-};
-
-type Message = {
+// Client-side message type with UI-specific fields
+type UIMessage = {
   id: string;
   sender: "user" | "bot";
   text: string;
   timestamp: Date;
 };
+
+// Convert DB message to UI message
+function convertToUIMessage(message: DBMessage): UIMessage {
+  return {
+    id: message.id,
+    sender: message.is_ai ? "bot" : "user",
+    text: message.content,
+    timestamp: new Date(message.created_at),
+  };
+}
 
 export default function GamePage({
   params,
@@ -28,7 +37,7 @@ export default function GamePage({
   const unwrappedParams = use(params);
   const gameId = unwrappedParams.id;
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<UIMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [username, setUsername] = useState<string | null>(null);
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
@@ -45,29 +54,50 @@ export default function GamePage({
 
     // Fetch game session
     fetchGameSession();
+
+    // Fetch messages
+    fetchMessages();
+
+    // Subscribe to new messages
+    const unsubscribe = subscribeToMessages(gameId, (newMessage) => {
+      const uiMessage = convertToUIMessage(newMessage);
+      setMessages((prev) => [...prev, uiMessage]);
+    });
+
+    // Cleanup subscription
+    return () => {
+      unsubscribe();
+    };
   }, [gameId]);
 
   useEffect(() => {
-    // Add initial bot message once we have game data
-    if (gameSession && !isLoading && messages.length === 0) {
-      const players = gameSession.game_state.users.filter(
-        (user) => user !== username
-      );
-      const playerList =
-        players.length > 0
-          ? `You're playing with ${players.join(", ")}.`
-          : "You're the only player right now.";
+    // Add initial bot welcome message if there are no messages
+    const addInitialMessage = async () => {
+      if (gameSession && !isLoading && messages.length === 0) {
+        const players = gameSession.game_state.users.filter(
+          (user) => user !== username
+        );
+        const playerList =
+          players.length > 0
+            ? `You're playing with ${players.join(", ")}.`
+            : "You're the only player right now.";
 
-      setMessages([
-        {
-          id: "welcome",
-          sender: "bot",
-          text: `Welcome to the game! I'll be your monster companion. ${playerList} What would you like to do?`,
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  }, [gameSession, isLoading, username]);
+        try {
+          // Add welcome message to database
+          await addAIMessage(
+            gameId,
+            `Welcome to the game! I'll be your monster companion. ${playerList} What would you like to do?`
+          );
+
+          // We don't need to update the local state here since the subscription will handle it
+        } catch (error) {
+          console.error("Error adding welcome message:", error);
+        }
+      }
+    };
+
+    addInitialMessage();
+  }, [gameSession, isLoading, username, messages.length, gameId]);
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -79,20 +109,13 @@ export default function GamePage({
     setError(null);
 
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("game_sessions")
-        .select("*")
-        .eq("id", gameId)
-        .single();
+      const session = await getGameSession(gameId);
 
-      if (error) throw error;
-
-      if (!data) {
+      if (!session) {
         throw new Error("Game session not found");
       }
 
-      setGameSession(data as GameSession);
+      setGameSession(session);
     } catch (error: unknown) {
       console.error("Error fetching game session:", error);
       const errorMessage =
@@ -103,32 +126,42 @@ export default function GamePage({
     }
   };
 
+  const fetchMessages = async () => {
+    try {
+      const dbMessages = await getSessionMessages(gameId);
+      const uiMessages = dbMessages.map(convertToUIMessage);
+      setMessages(uiMessages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (inputValue.trim() === "") return;
+    if (inputValue.trim() === "" || !username) return;
 
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      sender: "user",
-      text: inputValue,
-      timestamp: new Date(),
-    };
+    try {
+      // Add user message to database
+      await addUserMessage(gameId, username, inputValue.trim());
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
+      // Clear input field
+      setInputValue("");
 
-    // Simulate bot response after short delay
-    setTimeout(() => {
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: "bot",
-        text: `I'm just a demo bot. Your game ID is ${gameId} and you said: "${userMessage.text}"`,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botMessage]);
-    }, 1000);
+      // AI response is handled on the backend, but we'll simulate it here
+      setTimeout(async () => {
+        try {
+          await addAIMessage(
+            gameId,
+            `I'm just a demo bot. Your game ID is ${gameId} and you said: "${inputValue.trim()}"`
+          );
+        } catch (error) {
+          console.error("Error adding AI response:", error);
+        }
+      }, 1000);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   if (isLoading) {
