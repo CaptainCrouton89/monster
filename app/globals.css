@@ -44,6 +44,7 @@
 }
 
 :root {
+  --app-height: 100vh;
   --radius: 0.625rem;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -224,4 +225,24 @@
     hyphens: auto;
     word-break: break-word;
   }
+}
+
+/* reset margins */
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* apply notch insets to body padding */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* container that fills the safe height */
+.app-container {
+  height: var(--app-height);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
 }
