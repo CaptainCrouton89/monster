@@ -1,5 +1,5 @@
 import { Spinner } from "@/components/ui/spinner";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 interface ChatInputProps {
   isSubmitting: boolean;
@@ -17,13 +17,26 @@ export function ChatInput({ isSubmitting, onSendMessage }: ChatInputProps) {
     setInputValue("");
   };
 
+  const onFocusOrBlur = useCallback(() => {
+    document.documentElement.style.setProperty(
+      "--app-height",
+      `${window.visualViewport!.height}px`
+    );
+    console.log("onFocusOrBlur", window.visualViewport!.height);
+  }, []);
+
   return (
     <div className="game-header p-3 sm:p-4 w-full">
       <form onSubmit={handleSubmit} className="flex gap-2 relative">
         <input
+          onFocus={onFocusOrBlur}
+          onBlur={onFocusOrBlur}
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            onFocusOrBlur();
+          }}
           placeholder="Type your message..."
           className="flex-1 game-input rounded-full px-3 sm:px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
           disabled={isSubmitting}

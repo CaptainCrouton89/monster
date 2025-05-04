@@ -10,7 +10,7 @@ interface GameHeaderProps {
 export function GameHeader({ gameId, username, gameSession }: GameHeaderProps) {
   return (
     <header
-      className={`game-header p-3 sm:p-4 flex items-center justify-between shadow-md sticky top-0 z-10`}
+      className={`game-header p-3 sm:p-4 flex items-center justify-between shadow-md z-10`}
     >
       <div className="flex items-center gap-2 sm:gap-3">
         <h1 className="text-lg sm:text-xl font-bold">
