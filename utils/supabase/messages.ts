@@ -192,7 +192,7 @@ export async function sendMessageToWebhook(messageData: {
   user: string;
 }): Promise<boolean> {
   const webhookUrl =
-    "https://andrewmayne.app.n8n.cloud/webhook-test/a79e73f0-a866-4b25-95be-4302bde67c1e";
+    "https://andrewmayne.app.n8n.cloud/webhook/a79e73f0-a866-4b25-95be-4302bde67c1e";
 
   try {
     const response = await fetch(webhookUrl, {
