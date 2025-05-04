@@ -18,7 +18,7 @@ export function ChatInput({ isSubmitting, onSendMessage }: ChatInputProps) {
   };
 
   return (
-    <div className="game-header p-3 sm:p-4">
+    <div className="game-header p-3 sm:p-4 sticky bottom-0 z-10">
       <form onSubmit={handleSubmit} className="flex gap-2 relative">
         <input
           type="text"

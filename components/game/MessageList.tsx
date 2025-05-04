@@ -1,29 +1,15 @@
 import { Spinner } from "@/components/ui/spinner";
-import React, { RefObject } from "react";
 import { MessageItem } from "./MessageItem";
 import { UIMessage } from "./types";
 
 interface MessageListProps {
   messages: UIMessage[];
   aiResponding: boolean;
-  isKeyboardOpen: boolean;
-  chatContainerRef: RefObject<HTMLDivElement>;
-  messagesEndRef: RefObject<HTMLDivElement>;
 }
 
-export function MessageList({
-  messages,
-  aiResponding,
-  isKeyboardOpen,
-  chatContainerRef,
-  messagesEndRef,
-}: MessageListProps) {
+export function MessageList({ messages, aiResponding }: MessageListProps) {
   return (
-    <div
-      ref={chatContainerRef}
-      className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4"
-      style={isKeyboardOpen ? { height: "calc(100vh - 76px)" } : {}}
-    >
+    <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 pb-2">
       {messages.map((message) => (
         <MessageItem key={message.id} message={message} />
       ))}
@@ -36,8 +22,6 @@ export function MessageList({
           </div>
         </div>
       )}
-
-      <div ref={messagesEndRef as React.RefObject<HTMLDivElement>} />
     </div>
   );
 }

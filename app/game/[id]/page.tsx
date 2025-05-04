@@ -27,9 +27,6 @@ export default function GamePage({
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
   const subscriptionRef = useRef<() => void>(() => {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiResponding, setAiResponding] = useState(false);
@@ -65,40 +62,11 @@ export default function GamePage({
       });
     });
 
-    // Detect mobile keyboard
-    if (typeof window !== "undefined") {
-      const detectKeyboard = () => {
-        const visualViewport = window.visualViewport;
-        if (visualViewport) {
-          const isKeyboard = window.innerHeight > visualViewport.height + 150;
-          setIsKeyboardOpen(isKeyboard);
-
-          if (isKeyboard && chatContainerRef.current) {
-            // Adjust scroll when keyboard is opened
-            setTimeout(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-            }, 100);
-          }
-        }
-      };
-
-      window.visualViewport?.addEventListener("resize", detectKeyboard);
-      return () => {
-        window.visualViewport?.removeEventListener("resize", detectKeyboard);
-        subscriptionRef.current();
-      };
-    }
-
     // Cleanup subscription
     return () => {
       subscriptionRef.current();
     };
   }, [gameId]);
-
-  useEffect(() => {
-    // Scroll to bottom when messages change
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const fetchGameSession = async () => {
     setIsLoading(true);
@@ -158,21 +126,14 @@ export default function GamePage({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white">
+    <div className="flex flex-col h-screen bg-[var(--game-bg)] text-white overflow-hidden">
       <GameHeader
         gameId={gameId}
         username={username}
         gameSession={gameSession}
-        isKeyboardOpen={isKeyboardOpen}
       />
 
-      <MessageList
-        messages={messages}
-        aiResponding={aiResponding}
-        isKeyboardOpen={isKeyboardOpen}
-        chatContainerRef={chatContainerRef as React.RefObject<HTMLDivElement>}
-        messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
-      />
+      <MessageList messages={messages} aiResponding={aiResponding} />
 
       <ChatInput
         isSubmitting={isSubmitting}
