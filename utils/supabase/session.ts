@@ -40,41 +40,38 @@ function dbResponseToGameSession(data: GameSessionRaw): GameSession {
  * @param threadId Optional thread ID to associate with the session
  * @returns The newly created game session
  */
-export async function createGameSession(
-  username: string | null = null,
-  threadId: string | null = null
-) {
+export async function createGameSession(username: string) {
   const users = username ? [username] : [];
 
   // If threadId is not provided, fetch one from the webhook endpoint
-  if (!threadId) {
-    try {
-      const response = await fetch(
-        "https://andrewmayne.app.n8n.cloud/webhook/97c27ecd-60e1-417d-8db6-a29177abbffa"
+
+  let threadId: string | null = null;
+  try {
+    const response = await fetch(
+      "https://andrewmayne.app.n8n.cloud/webhook/97c27ecd-60e1-417d-8db6-a29177abbffa"
+    );
+    if (response.ok) {
+      const data = await response.json();
+      threadId = data.session;
+    } else {
+      console.error(
+        "Failed to fetch thread ID from webhook:",
+        response.statusText
       );
-      if (response.ok) {
-        const data = await response.json();
-        threadId = data.session;
-      } else {
-        console.error(
-          "Failed to fetch thread ID from webhook:",
-          response.statusText
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching thread ID:", error);
     }
+  } catch (error) {
+    console.error("Error fetching thread ID:", error);
   }
 
   const supabase = createClient();
   const { data, error } = await supabase
     .from("game_sessions")
     .insert({
+      id: threadId!,
       game_state: {
         users,
         status: "waiting",
       },
-      thread_id: threadId,
     })
     .select()
     .single();
@@ -200,39 +197,4 @@ export async function checkGameSessionExists(id: string) {
   } catch {
     return false;
   }
-}
-
-/**
- * Updates the thread ID for a session
- * @param sessionId Game session ID
- * @param threadId Thread ID to set
- * @returns Updated game session
- */
-export async function updateSessionThreadId(
-  sessionId: string,
-  threadId: string
-) {
-  // First get the current session
-  const currentSession = await getGameSession(sessionId);
-
-  if (!currentSession) {
-    throw new Error("Game session not found");
-  }
-
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("game_sessions")
-    .update({
-      thread_id: threadId,
-    })
-    .eq("id", sessionId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error updating session thread ID:", error);
-    throw new Error("Failed to update session thread ID");
-  }
-
-  return dbResponseToGameSession(data as GameSessionRaw);
 }

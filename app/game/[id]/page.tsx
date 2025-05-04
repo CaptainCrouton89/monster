@@ -107,7 +107,7 @@ export default function GamePage({
 
     try {
       // Add user message to Supabase and send to webhook
-      await addUserMessageWithWebhook(gameId, username, messageText, gameId);
+      await addUserMessageWithWebhook(gameId, username, messageText);
       setIsSubmitting(false);
       // Set AI is responding
       setAiResponding(true);

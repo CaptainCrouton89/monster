@@ -14,21 +14,18 @@ export type Database = {
           created_at: string | null
           game_state: Json
           id: string
-          thread_id: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           game_state?: Json
-          id?: string
-          thread_id?: string | null
+          id: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           game_state?: Json
           id?: string
-          thread_id?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -38,7 +35,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_ai: boolean
-          session_id: string
+          session_id: string | null
           text: string
           user_id: string | null
         }
@@ -46,7 +43,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_ai?: boolean
-          session_id: string
+          session_id?: string | null
           text: string
           user_id?: string | null
         }
@@ -54,7 +51,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_ai?: boolean
-          session_id?: string
+          session_id?: string | null
           text?: string
           user_id?: string | null
         }

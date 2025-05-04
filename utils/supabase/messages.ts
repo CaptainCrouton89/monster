@@ -186,7 +186,6 @@ export async function getRecentMessages(
  * @returns True if successful
  */
 export async function sendMessageToWebhook(messageData: {
-  sessionId: string;
   text: string;
   threadId: string;
   user: string;
@@ -226,8 +225,7 @@ export async function sendMessageToWebhook(messageData: {
 export async function addUserMessageWithWebhook(
   sessionId: string,
   userId: string,
-  text: string,
-  threadId: string
+  text: string
 ): Promise<Message> {
   // First save to database
   const savedMessage = await addUserMessage(sessionId, userId, text);
@@ -235,8 +233,7 @@ export async function addUserMessageWithWebhook(
   // Then send to webhook
   await sendMessageToWebhook({
     user: userId,
-    threadId,
-    sessionId,
+    threadId: sessionId,
     text,
   });
 

@@ -48,6 +48,11 @@ export default function Home() {
       // Get the username from localStorage
       const username = localStorage.getItem("username");
 
+      if (!username) {
+        setIsUserDialogOpen(true);
+        return;
+      }
+
       // Create a new game session in Supabase
       const gameSession = await createGameSession(username);
 
