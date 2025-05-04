@@ -1,7 +1,17 @@
 "use client";
 
+import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import { use, useEffect, useRef, useState } from "react";
+
+type GameSession = {
+  id: string;
+  game_state: {
+    users: string[];
+    status: string;
+  };
+  created_at: string;
+};
 
 type Message = {
   id: string;
@@ -21,6 +31,9 @@ export default function GamePage({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [username, setUsername] = useState<string | null>(null);
+  const [gameSession, setGameSession] = useState<GameSession | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,23 +43,67 @@ export default function GamePage({
       setUsername(storedUsername);
     }
 
-    // Add initial bot message
-    setMessages([
-      {
-        id: "welcome",
-        sender: "bot",
-        text: "Welcome to the game! I'll be your monster companion. What would you like to do?",
-        timestamp: new Date(),
-      },
-    ]);
-  }, []);
+    // Fetch game session
+    fetchGameSession();
+  }, [gameId]);
+
+  useEffect(() => {
+    // Add initial bot message once we have game data
+    if (gameSession && !isLoading && messages.length === 0) {
+      const players = gameSession.game_state.users.filter(
+        (user) => user !== username
+      );
+      const playerList =
+        players.length > 0
+          ? `You're playing with ${players.join(", ")}.`
+          : "You're the only player right now.";
+
+      setMessages([
+        {
+          id: "welcome",
+          sender: "bot",
+          text: `Welcome to the game! I'll be your monster companion. ${playerList} What would you like to do?`,
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }, [gameSession, isLoading, username]);
 
   useEffect(() => {
     // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const fetchGameSession = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("game_sessions")
+        .select("*")
+        .eq("id", gameId)
+        .single();
+
+      if (error) throw error;
+
+      if (!data) {
+        throw new Error("Game session not found");
+      }
+
+      setGameSession(data as GameSession);
+    } catch (error: unknown) {
+      console.error("Error fetching game session:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to load game session";
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (inputValue.trim() === "") return;
@@ -74,6 +131,28 @@ export default function GamePage({
     }, 1000);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-screen bg-slate-900 text-white items-center justify-center">
+        <p>Loading game...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col h-screen bg-slate-900 text-white items-center justify-center">
+        <p className="text-red-400">{error}</p>
+        <Link
+          href="/"
+          className="mt-4 px-6 py-2 bg-transparent border border-slate-600 hover:bg-slate-700/30 rounded-full font-medium transition-colors"
+        >
+          Return Home
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-slate-900 text-white">
       {/* Header */}
@@ -84,12 +163,20 @@ export default function GamePage({
             Game #{gameId}
           </span>
         </div>
-        {username && (
-          <div className="text-sm text-slate-300">
-            Playing as{" "}
-            <span className="font-semibold text-green-400">{username}</span>
-          </div>
-        )}
+        <div className="text-sm text-slate-300 flex items-center">
+          {username && (
+            <span className="mr-4">
+              Playing as{" "}
+              <span className="font-semibold text-green-400">{username}</span>
+            </span>
+          )}
+          {gameSession && (
+            <span className="bg-slate-700 px-2 py-1 rounded-md text-xs">
+              {gameSession.game_state.users.length} Player
+              {gameSession.game_state.users.length !== 1 && "s"}
+            </span>
+          )}
+        </div>
       </header>
 
       {/* Chat area */}
@@ -141,13 +228,19 @@ export default function GamePage({
             Send
           </button>
         </form>
-        <div className="mt-3 flex justify-center">
+        <div className="mt-3 flex justify-center gap-4">
           <Link
             href={`/lobby/${gameId}`}
             className="text-sm text-slate-400 hover:text-white transition-colors"
           >
             Return to Lobby
           </Link>
+          <button
+            onClick={fetchGameSession}
+            className="text-sm text-slate-400 hover:text-white transition-colors"
+          >
+            Refresh Game
+          </button>
         </div>
       </div>
     </div>

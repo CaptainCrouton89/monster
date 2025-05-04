@@ -9,8 +9,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
+
+type GameSession = {
+  id: string;
+  game_state: {
+    users: string[];
+    status: string;
+  };
+  created_at: string;
+};
 
 export default function LobbyPage({
   params,
@@ -19,10 +30,14 @@ export default function LobbyPage({
 }) {
   const unwrappedParams = use(params);
   const lobbyId = unwrappedParams.id;
+  const router = useRouter();
 
   const [username, setUsername] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [gameSession, setGameSession] = useState<GameSession | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check for user in localStorage
@@ -32,7 +47,81 @@ export default function LobbyPage({
     } else {
       setIsDialogOpen(true);
     }
-  }, []);
+
+    // Fetch the game session
+    fetchGameSession();
+  }, [lobbyId]);
+
+  // Join lobby when username is set
+  useEffect(() => {
+    if (username && gameSession) {
+      joinLobby();
+    }
+  }, [username, gameSession]);
+
+  const fetchGameSession = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("game_sessions")
+        .select("*")
+        .eq("id", lobbyId)
+        .single();
+
+      if (error) throw error;
+
+      if (!data) {
+        throw new Error("Game session not found");
+      }
+
+      setGameSession(data as GameSession);
+    } catch (error: unknown) {
+      console.error("Error fetching game session:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to load game session";
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const joinLobby = async () => {
+    if (!username || !gameSession) return;
+
+    try {
+      // Check if user is already in the game
+      if (!gameSession.game_state.users.includes(username)) {
+        const supabase = createClient();
+        const updatedUsers = [...gameSession.game_state.users, username];
+
+        const { error } = await supabase
+          .from("game_sessions")
+          .update({
+            game_state: {
+              ...gameSession.game_state,
+              users: updatedUsers,
+            },
+          })
+          .eq("id", lobbyId);
+
+        if (error) throw error;
+
+        // Update local state
+        setGameSession({
+          ...gameSession,
+          game_state: {
+            ...gameSession.game_state,
+            users: updatedUsers,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error joining lobby:", error);
+    }
+  };
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +131,32 @@ export default function LobbyPage({
       setIsDialogOpen(false);
     }
   };
+
+  const startGame = () => {
+    router.push(`/game/${lobbyId}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+        <p>Loading lobby...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+        <p className="text-red-400">{error}</p>
+        <Link
+          href="/"
+          className="mt-4 px-6 py-2 bg-transparent border border-slate-600 hover:bg-slate-700/30 rounded-full font-medium transition-colors"
+        >
+          Return Home
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white p-8">
@@ -59,17 +174,30 @@ export default function LobbyPage({
             </p>
           )}
 
-          <p className="text-slate-300 mb-6">
-            Waiting for other players to join...
-          </p>
+          {gameSession && (
+            <div className="mb-6">
+              <p className="text-xl mb-2">Players:</p>
+              <div className="bg-slate-950/50 p-3 rounded text-left">
+                {gameSession.game_state.users.map((user, index) => (
+                  <div key={index} className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    <span className="font-medium">{user}</span>
+                    {user === username && (
+                      <span className="text-xs text-slate-400 ml-2">(you)</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
-            <Link
-              href={`/game/${lobbyId}`}
+            <button
+              onClick={startGame}
               className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-full font-medium transition-colors text-center"
             >
               Start Game
-            </Link>
+            </button>
             <Link
               href="/"
               className="px-6 py-2 bg-transparent border border-slate-600 hover:bg-slate-700/30 rounded-full font-medium transition-colors"

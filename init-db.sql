@@ -6,6 +6,19 @@ CREATE TABLE IF NOT EXISTS game_sessions (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create messages table
+CREATE TABLE IF NOT EXISTS messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL REFERENCES game_sessions(id) ON DELETE CASCADE,
+    user_id TEXT,
+    is_ai BOOLEAN NOT NULL DEFAULT FALSE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for faster message lookups by session
+CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id);
+
 -- Create an update_timestamp function to automatically set updated_at
 CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
